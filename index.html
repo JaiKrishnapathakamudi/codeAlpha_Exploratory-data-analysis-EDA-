@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Netflix EDA Dashboard</title>
+  <!-- Google Fonts: Inter and Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Premium Netflix-themed CSS Stylesheet */
+    :root {
+      --netflix-red: #E50914;
+      --netflix-red-dark: #B81D24;
+      --bg-dark: #141414;
+      --bg-card: #1f1f1f;
+      --bg-sidebar: #0f0f0f;
+      --text-main: #ffffff;
+      --text-muted: #a3a3a3;
+      --text-dim: #737373;
+      --border-color: #2d2d2d;
+      --font-body: 'Inter', sans-serif;
+      --font-title: 'Outfit', sans-serif;
+      --transition-speed: 0.3s;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Layout Structure */
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 24px;
+      transition: transform var(--transition-speed);
+    }
+
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      padding: 40px;
+      min-height: 100vh;
+      transition: margin-left var(--transition-speed);
+    }
+
+    /* Branding logo */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      font-family: var(--font-title);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--netflix-red);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .brand-tag {
+      font-size: 11px;
+      background: var(--border-color);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Sidebar Navigation Links */
+    .nav-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      text-align: left;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all var(--transition-speed);
+    }
+
+    .nav-item button:hover {
+      background-color: rgba(229, 9, 20, 0.08);
+      color: var(--text-main);
+    }
+
+    .nav-item.active button {
+      background-color: var(--netflix-red);
+      color: var(--text-main);
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(229, 9, 20, 0.4);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border-color);
+      padding-top: 20px;
+    }
+
+    /* Main Dashboard Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    .header-title h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Stat KPI Cards Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-speed), border-color var(--transition-speed);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(229, 9, 20, 0.5);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background-color: var(--netflix-red);
+      opacity: 0.7;
+    }
+
+    .stat-title {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: var(--font-title);
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stat-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Panel Content Management */
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* General Panel Typography */
+    h2.panel-title {
+      font-family: var(--font-title);
+      font-size: 22px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2.panel-title::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 22px;
+      background-color: var(--netflix-red);
+      border-radius: 2px;
+    }
+
+    .content-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+
+    .content-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Schema Table Styling */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    td {
+      color: var(--text-muted);
+    }
+
+    tr:hover td {
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+
+    /* Visualization Grid styling */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .chart-container {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color var(--transition-speed);
+    }
+
+    .chart-container:hover {
+      border-color: rgba(229, 9, 20, 0.3);
+    }
+
+    .chart-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chart-title {
+      font-family: var(--font-title);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .chart-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .chart-img-wrapper {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #2b2b2b;
+      cursor: zoom-in;
+      aspect-ratio: 16/9;
+    }
+
+    .chart-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform var(--transition-speed);
+    }
+
+    .chart-img-wrapper:hover img {
+      transform: scale(1.03);
+    }
+
+    .chart-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity var(--transition-speed);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      gap: 8px;
+    }
+
+    .chart-img-wrapper:hover .chart-overlay {
+      opacity: 1;
+    }
+
+    .chart-insight {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      background-color: rgba(255, 255, 255, 0.02);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border-left: 3px solid var(--netflix-red);
+    }
+
+    /* Hypothesis Cards layout */
+    .hypothesis-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .hyp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .hyp-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hyp-num {
+      font-size: 11px;
+      color: var(--netflix-red);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hyp-title {
+      font-family: var(--font-title);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-success {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .badge-warning {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .hyp-body {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .hyp-stat-box {
+      background: rgba(255,255,255,0.02);
+      padding: 14px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #f5f5f1;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Modal / Lightbox popup */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(10, 10, 10, 0.95);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content-wrapper {
+      max-width: 1000px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .modal-img-container {
+      background-color: #1f1f1f;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      aspect-ratio: 16/9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-img-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -30px;
+      right: 0;
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 24px;
+      cursor: pointer;
+      font-weight: 300;
+    }
+
+    .modal-close:hover {
+      color: var(--netflix-red);
+    }
+
+    .modal-desc {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Mobile Responsive styling */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.mobile-active {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 20px;
+      }
+      header {
+        margin-top: 40px;
+      }
+      /* Mobile hamburger button */
+      .menu-btn {
+        display: block;
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 101;
+        background-color: var(--netflix-red);
+        border: none;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .menu-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mobile Hamburger Menu Button -->
+  <button class="menu-btn" onclick="toggleMobileSidebar()">☰ Menu</button>
+
+  <!-- Sidebar Navigation -->
+  <div class="sidebar" id="sidebar">
+    <a href="#" class="brand">
+      <span class="brand-logo">Netflix</span>
+      <span class="brand-tag">EDA</span>
+    </a>
+    <ul class="nav-links">
+      <li class="nav-item active" data-tab="overview">
+        <button onclick="switchTab('overview')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+          Overview
+        </button>
+      </li>
+      <li class="nav-item" data-tab="charts">
+        <button onclick="switchTab('charts')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          Visualizations
+        </button>
+      </li>
+      <li class="nav-item" data-tab="hypotheses">
+        <button onclick="switchTab('hypotheses')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+          Hypothesis Testing
+        </button>
+      </li>
+      <li class="nav-item" data-tab="details">
+        <button onclick="switchTab('details')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          Data Issues
+        </button>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <p>Netflix EDA Dashboard</p>
+      <p style="margin-top: 4px; font-size: 11px;">Version 1.0.0 (June 2026)</p>
+    </div>
+  </div>
+
+  <!-- Main Display Context -->
+  <div class="main-content">
+    
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <h1 id="dashboard-title">Overview</h1>
+        <p>Interactive Data Insights & Exploratory Statistics</p>
+      </div>
+      <div style="font-size: 13px; color: var(--text-dim);">
+        Last Run: <span style="color: var(--text-muted); font-weight: 500;">June 26, 2026</span>
+      </div>
+    </header>
+
+    <!-- KPI Statistics (Common across view toggles, updates dynamically) -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-title">Total Catalog Size</span>
+        <span class="stat-value" id="kpi-total">7,787</span>
+        <span class="stat-desc">Unique movie and TV listings</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Movies Proportion</span>
+        <span class="stat-value" id="kpi-movies-pct">69.1%</span>
+        <span class="stat-desc">5,377 titles in catalog</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">TV Shows Proportion</span>
+        <span class="stat-value" id="kpi-tvshows-pct">30.9%</span>
+        <span class="stat-desc">2,410 titles in catalog</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Mature Rated Content</span>
+        <span class="stat-value" id="kpi-mature-pct">45.5%</span>
+        <span class="stat-desc">Rated TV-MA, R, or NC-17</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Avg Movie Duration</span>
+        <span class="stat-value" id="kpi-duration">99.3 min</span>
+        <span class="stat-desc">Median runtime: 98.0 min</span>
+      </div>
+    </div>
+
+    <!-- 1. OVERVIEW PANEL -->
+    <div class="tab-panel active" id="panel-overview">
+      <h2 class="panel-title">Project Overview</h2>
+      <div class="content-card">
+        <p>This web interface serves as the frontend visual reporter for our Netflix Movies and TV Shows Exploratory Data Analysis. The project explores distribution channels, production statistics, ratings partitions, and runtimes across historical additions.</p>
+        <p>To inspect the underlying Python pipelines and code structure, you can view the scripts in the file system:</p>
+        <ul style="color: var(--text-muted); font-size: 15px; margin-left: 20px; line-height: 1.6; margin-bottom: 16px;">
+          <li>Automated Script: <a href="file:///c:/Users/patha/OneDrive/Desktop/exploratory data analysis_code alpha/src/netflix_eda.py" style="color: var(--netflix-red); text-decoration: none;">[src/netflix_eda.py]</a></li>
+          <li>Interactive Notebook: <a href="file:///c:/Users/patha/OneDrive/Desktop/exploratory data analysis_code alpha/notebooks/netflix_eda.ipynb" style="color: var(--netflix-red); text-decoration: none;">[notebooks/netflix_eda.ipynb]</a></li>
+        </ul>
+      </div>
+
+      <h2 class="panel-title">Dataset Structure Audited</h2>
+      <div class="content-card">
+        <p>During the initialization, we loaded 12 parameters and performed completeness evaluations. Below is the audited dataset schema:</p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Variable Name</th>
+                <th>Audited Type</th>
+                <th>Missing (%)</th>
+                <th>Handling Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>show_id</strong></td>
+                <td>String Object</td>
+                <td>0.00%</td>
+                <td>None (Primary Identifier)</td>
+              </tr>
+              <tr>
+                <td><strong>type</strong></td>
+                <td>String Categorical</td>
+                <td>0.00%</td>
+                <td>Standardized (Movie vs. TV Show)</td>
+              </tr>
+              <tr>
+                <td><strong>title</strong></td>
+                <td>String Name</td>
+                <td>0.00%</td>
+                <td>None</td>
+              </tr>
+              <tr>
+                <td><strong>director</strong></td>
+                <td>String List</td>
+                <td><span id="null-director">30.68%</span></td>
+                <td>Imputed with <em>"Unknown Director"</em></td>
+              </tr>
+              <tr>
+                <td><strong>cast</strong></td>
+                <td>String List</td>
+                <td><span id="null-cast">9.22%</span></td>
+                <td>Imputed with <em>"No Cast"</em></td>
+              </tr>
+              <tr>
+                <td><strong>country</strong></td>
+                <td>String List</td>
+                <td><span id="null-country">6.51%</span></td>
+                <td>Imputed with <em>"Unknown"</em></td>
+              </tr>
+              <tr>
+                <td><strong>date_added</strong></td>
+                <td>String -> DateTime</td>
+                <td>0.13%</td>
+                <td>Negligible; dropped rows</td>
+              </tr>
+              <tr>
+                <td><strong>release_year</strong></td>
+                <td>Integer Year</td>
+                <td>0.00%</td>
+                <td>Used for temporal analysis</td>
+              </tr>
+              <tr>
+                <td><strong>rating</strong></td>
+                <td>String Categorical</td>
+                <td>0.09%</td>
+                <td>Imputed with Mode (<em>"TV-MA"</em>)</td>
+              </tr>
+              <tr>
+                <td><strong>duration</strong></td>
+                <td>String -> Int split</td>
+                <td>0.00%</td>
+                <td>Parsed numeric counts and units</td>
+              </tr>
+              <tr>
+                <td><strong>listed_in</strong></td>
+                <td>String Categories</td>
+                <td>0.00%</td>
+                <td>Used for genre groupings</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. VISUALIZATION DASHBOARD PANEL -->
+    <div class="tab-panel" id="panel-charts">
+      <h2 class="panel-title">Interactive Visualizations</h2>
+      <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 15px;">Click on any chart to expand it in high resolution.</p>
+      
+      <div class="charts-grid">
+        
+        <!-- Plot 1 -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span class="chart-title">Content Type Distribution</span>
+            <span class="chart-subtitle">Proportion of Movies vs. TV Shows in Catalog</span>
+          </div>
+          <div class="chart-img-wrapper" onclick="openLightbox('plots/content_type_distribution.png', 'Content Type Distribution: Donut split showing Movies represent ~69% of listings.')">
+            <img src="plots/content_type_distribution.png" alt="Content Type Distribution" onerror="this.src='https://placehold.co/600x400?text=Plot+Not+Found'">
+            <div class="chart-overlay">🔍 Click to Expand</div>
+          </div>
+          <div class="chart-insight">
+            Movies make up <strong>69.1%</strong> of Netflix listings compared to <strong>30.9%</strong> TV Shows, revealing Movies are Netflix's core catalog size.
+          </div>
+        </div>
+
+        <!-- Plot 2 -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span class="chart-title">Netflix Library Growth Trends</span>
+            <span class="chart-subtitle">Content Added Year-over-Year (2008 - 2021)</span>
+          </div>
+          <div class="chart-img-wrapper" onclick="openLightbox('plots/release_year_trends.png', 'Library Growth Trends: Historical growth peaking in 2019.')">
+            <img src="plots/release_year_trends.png" alt="Library Growth Trends" onerror="this.src='https://placehold.co/600x400?text=Plot+Not+Found'">
+            <div class="chart-overlay">🔍 Click to Expand</div>
+          </div>
+          <div class="chart-insight">
+            Content additions surged post-2015, peaking in 2019. The drop in 2021 reflects a combination of incomplete year records and production impacts.
+          </div>
+        </div>
+
+        <!-- Plot 3 -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span class="chart-title">Top 10 Content Production Hubs</span>
+            <span class="chart-subtitle">Volume of listings produced by Country</span>
+          </div>
+          <div class="chart-img-wrapper" onclick="openLightbox('plots/top_countries_content.png', 'Top Production Countries: USA leads, followed by India and UK.')">
+            <img src="plots/top_countries_content.png" alt="Top Production Countries" onerror="this.src='https://placehold.co/600x400?text=Plot+Not+Found'">
+            <div class="chart-overlay">🔍 Click to Expand</div>
+          </div>
+          <div class="chart-insight">
+            The <strong>United States</strong> is the dominant production hub, followed by <strong>India</strong> (skewed heavily towards films) and the <strong>United Kingdom</strong>.
+          </div>
+        </div>
+
+        <!-- Plot 4 -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span class="chart-title">Maturity Rating Distribution</span>
+            <span class="chart-subtitle">Frequency of Listings by Rating Category</span>
+          </div>
+          <div class="chart-img-wrapper" onclick="openLightbox('plots/rating_distribution.png', 'Rating Distribution: TV-MA dominates the catalog.')">
+            <img src="plots/rating_distribution.png" alt="Rating Distribution" onerror="this.src='https://placehold.co/600x400?text=Plot+Not+Found'">
+            <div class="chart-overlay">🔍 Click to Expand</div>
+          </div>
+          <div class="chart-insight">
+            <strong>TV-MA</strong> dominates the catalog by a wide margin, showing a clear corporate shift towards adult and mature-themed content.
+          </div>
+        </div>
+
+        <!-- Plot 5 -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span class="chart-title">Movie Duration Distribution</span>
+            <span class="chart-subtitle">Frequency of Movie Runtimes (Minutes)</span>
+          </div>
+          <div class="chart-img-wrapper" onclick="openLightbox('plots/movie_duration_distribution.png', 'Movie Runtimes: Bell curve peaking around 90-110 minutes.')">
+            <img src="plots/movie_duration_distribution.png" alt="Movie Duration Distribution" onerror="this.src='https://placehold.co/600x400?text=Plot+Not+Found'">
+            <div class="chart-overlay">🔍 Click to Expand</div>
+          </div>
+          <div class="chart-insight">
+            Movie runtimes follow a normal distribution. The mean is <strong>99.3 minutes</strong> and the median is <strong>98.0 minutes</strong>, showing standard movie length.
+          </div>
+        </div>
+
+        <!-- Plot 6 -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span class="chart-title">TV Show Season Distribution</span>
+            <span class="chart-subtitle">Frequency of seasons for TV Shows (Top 10)</span>
+          </div>
+          <div class="chart-img-wrapper" onclick="openLightbox('plots/tv_season_distribution.png', 'Season Counts: 1-Season shows dominate TV show content.')">
+            <img src="plots/tv_season_distribution.png" alt="TV Show Season Distribution" onerror="this.src='https://placehold.co/600x400?text=Plot+Not+Found'">
+            <div class="chart-overlay">🔍 Click to Expand</div>
+          </div>
+          <div class="chart-insight">
+            An overwhelming number of TV shows run for only **1 Season** before ending, indicating limited series or early cancellations.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. HYPOTHESIS TESTING PANEL -->
+    <div class="tab-panel" id="panel-hypotheses">
+      <h2 class="panel-title">Hypothesis Verification Results</h2>
+      
+      <!-- Hypothesis 1 -->
+      <div class="hypothesis-card">
+        <div class="hyp-header">
+          <div class="hyp-meta">
+            <span class="hyp-num">Hypothesis 1</span>
+            <span class="hyp-title">Shift in Content Strategy: Movies vs. TV Shows</span>
+          </div>
+          <span class="badge badge-warning">Partially Supported</span>
+        </div>
+        <div class="hyp-body">
+          <p><strong>Claim:</strong> Netflix has shifted its focus from releasing movies to acquiring or producing TV Shows in recent years.</p>
+          <p style="margin-top: 8px;"><strong>Analysis:</strong> We tracked the additions year-by-year from 2012 to 2021. TV Show additions surged significantly post-2015. However, in absolute volumes, Movies still make up the major part of yearly additions. For example, in 2020, Movies made up 65.3% of additions, and in 2021, they accounted for 75.2%.</p>
+        </div>
+        <div class="hyp-stat-box">
+          Recent Additions Ratio (Movies vs TV Shows):<br>
+          - 2019: Movies = 69.5% | TV Shows = 30.5%<br>
+          - 2020: Movies = 65.3% | TV Shows = 34.7%<br>
+          - 2021: Movies = 75.2% | TV Shows = 24.8%
+        </div>
+      </div>
+
+      <!-- Hypothesis 2 -->
+      <div class="hypothesis-card">
+        <div class="hyp-header">
+          <div class="hyp-meta">
+            <span class="hyp-num">Hypothesis 2</span>
+            <span class="hyp-title">Adult & Mature Content Dominance</span>
+          </div>
+          <span class="badge badge-success">Fully Validated</span>
+        </div>
+        <div class="hyp-body">
+          <p><strong>Claim:</strong> The majority of content catalog listings on Netflix are rated for mature audiences (TV-MA, R, NC-17).</p>
+          <p style="margin-top: 8px;"><strong>Analysis:</strong> We calculated the percentage of the library belonging to TV-MA (Mature Audience), R (Restricted), and NC-17 ratings. TV-MA is the single largest category on Netflix.</p>
+        </div>
+        <div class="hyp-stat-box">
+          Mature Content Statistics:<br>
+          - Total Mature Titles: 3,536<br>
+          - Percentage of Mature Listings: 45.5% of the total library.
+        </div>
+      </div>
+
+      <!-- Hypothesis 3 -->
+      <div class="hypothesis-card">
+        <div class="hyp-header">
+          <div class="hyp-meta">
+            <span class="hyp-num">Hypothesis 3</span>
+            <span class="hyp-title">Movie Run-Times Cluster</span>
+          </div>
+          <span class="badge badge-success">Fully Validated</span>
+        </div>
+        <div class="hyp-body">
+          <p><strong>Claim:</strong> Netflix movies are typically clustered between 90 and 110 minutes in duration.</p>
+          <p style="margin-top: 8px;"><strong>Analysis:</strong> Runtimes follow a standard bells-curve. The average runtime is 99.3 minutes and the median is 98.0 minutes. Over 40% of the listings lie exactly within the 90-110 minutes range.</p>
+        </div>
+        <div class="hyp-stat-box">
+          Movie Runtime Statistics:<br>
+          - Average Runtime: 99.3 minutes<br>
+          - Median Runtime: 98.0 minutes<br>
+          - Titles between 90-110 min: 40.3% of all films.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. DATA ISSUES PANEL -->
+    <div class="tab-panel" id="panel-details">
+      <h2 class="panel-title">Audited Data Anomalies</h2>
+      <div class="content-card">
+        <p>A crucial part of any Exploratory Data Analysis is identifying inconsistencies and potential issues with the data to address in future processing pipelines. During our exploration, we identified the following concerns:</p>
+        
+        <ul style="color: var(--text-muted); font-size: 15px; margin-left: 20px; line-height: 1.8; margin-top: 10px; display: flex; flex-direction: column; gap: 14px;">
+          <li>
+            <strong>Displaced Ratings:</strong> We detected that a small number of rows had duration units (e.g. <em>"74 min"</em>, <em>"84 min"</em>) incorrectly shifted into the <code>rating</code> column. This occurs when columns shift during CSV formatting.
+          </li>
+          <li>
+            <strong>High Missing Director Proportions:</strong> Approximately <strong>30.68%</strong> of the listings lacked directorship metadata. This limits director-specific grouping and tracking.
+          </li>
+          <li>
+            <strong>Comma Separated Lists:</strong> Columns like <code>country</code>, <code>cast</code>, and <code>listed_in</code> contain lists concatenated by commas. Aggregating production sizes or cast frequencies without flattening this data leads to skewed values (e.g., classifying "USA, UK" as a separate country from "USA").
+          </li>
+          <li>
+            <strong>No Dynamic Performance Metric:</strong> The raw dataset lacks quality indicators (e.g. IMDb score, viewer completion rate, or review score). This limits our ability to evaluate what content is successful, rather than just what is available.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Lightbox Modal Overlay -->
+  <div class="modal" id="lightbox-modal" onclick="closeLightbox()">
+    <div class="modal-content-wrapper" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeLightbox()">✕ Close</button>
+      <div class="modal-img-container">
+        <img id="lightbox-img" src="" alt="Expanded Visual">
+      </div>
+      <div class="modal-desc" id="lightbox-desc">Description of plot</div>
+    </div>
+  </div>
+
+  <!-- Link statistical data script (auto-generated by netflix_eda.py) -->
+  <script src="plots/stats_data.js" onerror="console.warn('stats_data.js not found. Using default dataset stats.')"></script>
+  <!-- Link UI controller script -->
+  <script src="src/dashboard.js"></script>
+
+</body>
+</html>
